@@ -101,15 +101,34 @@ public class BookingService {
 
     @Transactional
     public Booking createOfficerBooking(OfficerBookingRequestDTO dto) {
+
+        String customerId = dto.getCustomerId();
+    User user = null;
+
+    // ✅ Phone number se customer dhundo
+    if (customerId == null || customerId.isBlank()) {
+        if (dto.getReceiverMobile() != null) {
+            user = userRepository
+                .findByMobileNumber(dto.getReceiverMobile())
+                .orElse(null);
+            if (user != null) {
+                customerId = user.getCustomerId(); // ✅ sync karo
+            }
+        }
+    } else {
+        user = userRepository.findByCustomerId(customerId).orElse(null);
+    }
+
+    if (customerId == null || customerId.isBlank()) {
+        customerId = "WALK-IN-" + System.currentTimeMillis();
+    }
+
         PriceBreakdownDTO price = pricingService.calculateWithAdminFee(
                 dto.getParcelWeightGrams(),
                 dto.getDeliveryType(),
                 dto.getPackingPreference());
 
-        String customerId = dto.getCustomerId() != null
-                ? dto.getCustomerId() : "WALK-IN";
-        User user = userRepository
-                .findByCustomerId(customerId).orElse(null);
+       
 
         Booking booking = Booking.builder()
                 .bookingId(generateBookingId())
