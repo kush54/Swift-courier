@@ -1,18 +1,34 @@
 package com.courier.backend.controller;
 
-import com.courier.backend.dto.DTOs.*;
-import com.courier.backend.entity.Booking;
-import com.courier.backend.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.courier.backend.dto.DTOs.*;
+import com.courier.backend.dto.DTOs.ApiResponse;
+import com.courier.backend.dto.DTOs.OfficerBookingRequestDTO;
+import com.courier.backend.dto.DTOs.SchedulePickupDTO;
+import com.courier.backend.dto.DTOs.StatusUpdateDTO;
+import com.courier.backend.entity.Booking;
+import com.courier.backend.service.BookingService;
+import com.courier.backend.service.NotificationService;
 
 @RestController
 @RequestMapping("/api/officer")
 @CrossOrigin(origins = "*")
 public class OfficerController {
-
+@Autowired
+private NotificationService notificationService;
     @Autowired private BookingService bookingService;
 
     @PostMapping("/bookings/counter-create")
@@ -101,4 +117,51 @@ public class OfficerController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
+
+@PutMapping("/bookings/{bookingId}/cancel")
+public ResponseEntity<ApiResponse<String>> cancelBooking(
+        @PathVariable String bookingId) {
+
+    try {
+
+        Booking booking = bookingService
+                .findByBookingId(bookingId)
+                .orElseThrow(() ->
+                        new RuntimeException("Booking not found"));
+
+        // Prevent invalid cancellation
+        if (booking.getStatus() == Booking.BookingStatus.DELIVERED ||
+            booking.getStatus() == Booking.BookingStatus.INTRANSIT) {
+
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(
+                            "Cannot cancel — parcel is "
+                                    + booking.getStatus()));
+        }
+
+        booking.setStatus(Booking.BookingStatus.CANCELLED);
+
+        bookingService.save(booking);
+
+        // Send notification
+      notificationService.sendStatusNotification(
+    booking.getCustomerId(),
+    bookingId,
+    "CANCELLED"
+);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(
+                        "Booking cancelled successfully",
+                        bookingId
+                )
+        );
+
+    } catch (Exception e) {
+
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(e.getMessage()));
+    }
+}
+
 }

@@ -586,7 +586,11 @@ export class CreateBookingComponent
     this.showOriginList = false;
     this.originSuggestions = [];
     this.placeOriginMarker();
-    if (this.form.destLat) this.fetchRoutes();
+    // if (this.form.destLat) this.fetchRoutes();
+      if (this.form.destLat) {
+    this.fetchRoutes();
+    this.calcPrice(); // ✅ ek baar
+  }
   }
 
   selectDest(s: any) {
@@ -596,7 +600,11 @@ export class CreateBookingComponent
     this.showDestList = false;
     this.destSuggestions = [];
     this.placeDestMarker();
-    if (this.form.originLat) this.fetchRoutes();
+    // if (this.form.originLat) this.fetchRoutes();
+    if (this.form.originLat) {
+    this.fetchRoutes();
+    this.calcPrice(); // ✅ ek baar
+  }
   }
 
   placeOriginMarker() {
@@ -826,18 +834,35 @@ fetchRoutes() {
       this.fetchRoutes();
   }
 
+  // calcPrice() {
+  //   if (!this.form.parcelWeightGrams) return;
+  //   this.bookingService.calculateCost({
+  //     parcelWeightGrams: this.form.parcelWeightGrams,
+  //     deliveryType: this.form.deliveryType,
+  //     packingPreference: this.form.packingPreference
+  //   }).subscribe({
+  //     next: (res: any) => {
+  //       if (res.success) this.price = res.data;
+  //     }
+  //   });
+  // }
+
   calcPrice() {
-    if (!this.form.parcelWeightGrams) return;
-    this.bookingService.calculateCost({
-      parcelWeightGrams: this.form.parcelWeightGrams,
-      deliveryType: this.form.deliveryType,
-      packingPreference: this.form.packingPreference
-    }).subscribe({
-      next: (res: any) => {
-        if (res.success) this.price = res.data;
-      }
-    });
-  }
+  if (!this.form.parcelWeightGrams) return;
+  this.bookingService.calculateCost({
+    parcelWeightGrams: this.form.parcelWeightGrams,
+    deliveryType: this.form.deliveryType,
+    packingPreference: this.form.packingPreference,
+    originLat: this.form.originLat || 0,  // ✅
+    originLng: this.form.originLng || 0,  // ✅
+    destLat: this.form.destLat || 0,      // ✅
+    destLng: this.form.destLng || 0       // ✅
+  }).subscribe({
+    next: (res: any) => {
+      if (res.success) this.price = res.data;
+    }
+  });
+}
 
   submitBooking() {
     if (!this.form.originLat || !this.form.destLat) {

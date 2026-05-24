@@ -14,26 +14,26 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*")
 public class CustomerController {
 
-    @Autowired private BookingService bookingService;
-    @Autowired private PricingService pricingService;
+    @Autowired
+    private BookingService bookingService;
+    @Autowired
+    private PricingService pricingService;
 
-    @PostMapping("/bookings/calculate-cost")
-    public ResponseEntity<ApiResponse<PriceBreakdownDTO>> calculateCost(
-            @RequestBody PriceCalculationDTO dto) {
-        try {
-            PriceBreakdownDTO result = pricingService.calculatePrice(
-                    dto.getParcelWeightGrams(),
-                    dto.getDeliveryType(),
-                    dto.getPackingPreference());
-            return ResponseEntity.ok(
-                    ApiResponse.ok("Price calculated", result));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(e.getMessage()));
-        }
-    }
-
-
+//     @PostMapping("/bookings/calculate-cost")
+//     public ResponseEntity<ApiResponse<PriceBreakdownDTO>> calculateCost(
+//             @RequestBody PriceCalculationDTO dto) {
+//         try {
+//             PriceBreakdownDTO result = pricingService.calculatePrice(
+//                     dto.getParcelWeightGrams(),
+//                     dto.getDeliveryType(),
+//                     dto.getPackingPreference());
+//             return ResponseEntity.ok(
+//                     ApiResponse.ok("Price calculated", result));
+//         } catch (Exception e) {
+//             return ResponseEntity.badRequest()
+//                     .body(ApiResponse.error(e.getMessage()));
+//         }
+//     }
 //  @PostMapping("/bookings/calculate-cost")
 //     public ResponseEntity<ApiResponse<PriceBreakdownDTO>> calculateCost(
 //             @RequestBody PriceCalculationDTO dto) {
@@ -51,6 +51,20 @@ public class CustomerController {
 //             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
 //         }
 //     }
+    @PostMapping("/bookings/calculate-cost")
+    public ResponseEntity<ApiResponse<PriceBreakdownDTO>> calculateCost(
+            @RequestBody PriceCalculationDTO dto) {
+        PriceBreakdownDTO price = pricingService.calculatePrice(
+                dto.getParcelWeightGrams(),
+                dto.getDeliveryType(),
+                dto.getPackingPreference(),
+                dto.getOriginLat(), // ✅ add karo
+                dto.getOriginLng(),
+                dto.getDestLat(),
+                dto.getDestLng()
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Price calculated", price));
+    }
 
     @PostMapping("/bookings/create")
     public ResponseEntity<ApiResponse<Booking>> createBooking(
@@ -71,8 +85,8 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<PaymentResponseDTO>> processPayment(
             @RequestBody PaymentRequestDTO dto) {
         try {
-            PaymentResponseDTO result =
-                    bookingService.processPayment(dto);
+            PaymentResponseDTO result
+                    = bookingService.processPayment(dto);
             return ResponseEntity.ok(
                     ApiResponse.ok("Payment successful", result));
         } catch (Exception e) {
@@ -87,8 +101,8 @@ public class CustomerController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<BookingHistoryDTO> result =
-                    bookingService.getCustomerBookings(
+            Page<BookingHistoryDTO> result
+                    = bookingService.getCustomerBookings(
                             customerId, page, size);
             return ResponseEntity.ok(
                     ApiResponse.ok("Bookings fetched", result));

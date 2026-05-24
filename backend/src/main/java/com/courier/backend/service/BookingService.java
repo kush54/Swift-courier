@@ -1,22 +1,34 @@
 package com.courier.backend.service;
 
-import com.courier.backend.dto.DTOs.*;
-import com.courier.backend.entity.Booking;
-import com.courier.backend.entity.Payment;
-import com.courier.backend.entity.User;
-import com.courier.backend.repository.BookingRepository;
-import com.courier.backend.repository.PaymentRepository;
-import com.courier.backend.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.regex.Pattern;
+
+import com.courier.backend.dto.DTOs.*;
+import com.courier.backend.dto.DTOs.BookingHistoryDTO;
+import com.courier.backend.dto.DTOs.BookingRequestDTO;
+import com.courier.backend.dto.DTOs.GpsUpdateDTO;
+import com.courier.backend.dto.DTOs.OfficerBookingRequestDTO;
+import com.courier.backend.dto.DTOs.PaymentRequestDTO;
+import com.courier.backend.dto.DTOs.PaymentResponseDTO;
+import com.courier.backend.dto.DTOs.PriceBreakdownDTO;
+import com.courier.backend.dto.DTOs.SchedulePickupDTO;
+import com.courier.backend.dto.DTOs.StatusUpdateDTO;
+import com.courier.backend.dto.DTOs.TrackingResponseDTO;
+import com.courier.backend.entity.Booking;
+import com.courier.backend.entity.Payment;
+import com.courier.backend.entity.User;
+import com.courier.backend.repository.BookingRepository;
+import com.courier.backend.repository.PaymentRepository;
+import com.courier.backend.repository.UserRepository;
 
 @Service
 public class BookingService {
@@ -53,6 +65,8 @@ public class BookingService {
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd")),
                 count + 1);
     }
+
+    
 
     @Transactional
     public Booking createCustomerBooking(BookingRequestDTO dto,
@@ -406,6 +420,14 @@ notificationService.sendStatusNotification(
                 .deliveryType(b.getDeliveryType() != null
                         ? b.getDeliveryType().name() : "STANDARD")
                 .build();
+    }
+
+      public Optional<Booking> findByBookingId(String bookingId) {
+        return bookingRepository.findByBookingId(bookingId);
+    }
+
+    public Booking save(Booking booking) {
+        return bookingRepository.save(booking);
     }
 }
 

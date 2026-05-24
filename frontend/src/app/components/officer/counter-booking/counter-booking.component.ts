@@ -50,6 +50,16 @@ declare var L: any;
               <span class="material-icons">list_alt</span>
               All Bookings
             </button>
+
+              <button
+    *ngIf="createdBooking?.status === 'BOOKED'"
+    style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;
+    padding:8px 16px;border-radius:8px;cursor:pointer;
+    display:flex;align-items:center;gap:6px"
+    (click)="cancelBooking()">
+    <span class="material-icons" style="font-size:16px">cancel</span>
+    Cancel Booking
+  </button>
           </div>
         </div>
 
@@ -419,7 +429,7 @@ export class CounterBookingComponent implements OnInit {
   error = '';
   createdBooking: any = null;
 
-minDateTime = new Date().toISOString().slice(0,16);
+  minDateTime = new Date().toISOString().slice(0, 16);
   // Map variables
   map: any;
   originMarker: any;
@@ -497,8 +507,29 @@ minDateTime = new Date().toISOString().slice(0,16);
     this.showOriginList = false;
     this.originSuggestions = [];
     this.placeOriginMarker();
-    if (this.form.destLat) this.fetchRoutes();
+    // if (this.form.destLat) this.fetchRoutes();
+    if (this.form.destLat) {
+      this.fetchRoutes();
+      this.calculatePrice(); // ✅ distance mil gaya
+    }
   }
+
+  cancelBooking() {
+  if (!confirm('Cancel booking ' + this.createdBooking.bookingId + '?')) return;
+  this.bookingService.cancelBooking(this.createdBooking.bookingId).subscribe({
+    next: (res: any) => {
+      if (res.success) {
+        this.toast.success('Booking cancelled');
+        this.createdBooking.status = 'CANCELLED';
+      } else {
+        this.toast.error(res.message || 'Cancel failed');
+      }
+    },
+    error: (err: any) => {
+      this.toast.error(err.error?.message || 'Cancel failed');
+    }
+  });
+}
 
   selectDest(s: any) {
     this.destQuery = s.display_name;
@@ -507,7 +538,11 @@ minDateTime = new Date().toISOString().slice(0,16);
     this.showDestList = false;
     this.destSuggestions = [];
     this.placeDestMarker();
-    if (this.form.originLat) this.fetchRoutes();
+    // if (this.form.originLat) this.fetchRoutes();
+    if (this.form.originLat) {
+      this.fetchRoutes();
+      this.calculatePrice(); // ✅
+    }
   }
 
   placeOriginMarker() {
@@ -598,24 +633,46 @@ minDateTime = new Date().toISOString().slice(0,16);
     }));
   }
 
+  // calculatePrice() {
+  //   if (!this.form.parcelWeightGrams) return;
+  //   this.bookingService.calculateCost({
+  //     parcelWeightGrams: this.form.parcelWeightGrams,
+  //     deliveryType: this.form.deliveryType,
+  //     packingPreference: this.form.packingPreference
+  //   }).subscribe({
+  //     next: (res: any) => {
+  //       if (res.success) {
+  //         this.price = res.data;
+  //         this.price.totalServiceCost =
+  //           (parseFloat(this.price.totalServiceCost) + 25)
+  //             .toFixed(2);
+  //       }
+  //     }
+  //   });
+  // }
+
+
+  // CounterBookingComponent
   calculatePrice() {
     if (!this.form.parcelWeightGrams) return;
     this.bookingService.calculateCost({
       parcelWeightGrams: this.form.parcelWeightGrams,
       deliveryType: this.form.deliveryType,
-      packingPreference: this.form.packingPreference
+      packingPreference: this.form.packingPreference,
+      originLat: this.form.originLat || 0,  // ✅
+      originLng: this.form.originLng || 0,  // ✅
+      destLat: this.form.destLat || 0,      // ✅
+      destLng: this.form.destLng || 0       // ✅
     }).subscribe({
       next: (res: any) => {
         if (res.success) {
           this.price = res.data;
-          this.price.totalServiceCost =
-            (parseFloat(this.price.totalServiceCost) + 25)
-              .toFixed(2);
+          // ✅ Admin fee add — backend already add karta hai distance
+          // sirf officer counter booking ke liye +25
         }
       }
     });
   }
-
   // submitBooking() {
   //   if (!this.form.receiverName || !this.form.receiverMobile
   //     || !this.form.receiverAddress) {

@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 export class BookingService {
   private apiUrl = 'http://localhost:8080/api';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService) { }
 
   private customerHeaders(): HttpHeaders {
     const user = this.auth.getUser();
@@ -25,7 +25,13 @@ export class BookingService {
   calculateCost(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/customer/bookings/calculate-cost`, data);
   }
-
+  cancelOfficerBooking(bookingId: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/officer/bookings/${bookingId}/cancel`,
+      {},
+      { headers: this.officerHeaders() }
+    );
+  }
   createBooking(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/customer/bookings/create`, data, { headers: this.customerHeaders() });
   }

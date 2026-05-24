@@ -42,12 +42,24 @@ public static class LoginDTO {
         private String message;
     }
 
+    // @Data @NoArgsConstructor @AllArgsConstructor @Builder
+    // public static class PriceCalculationDTO {
+    //     private Integer parcelWeightGrams;
+    //     private String deliveryType;
+    //     private String packingPreference;
+    // }
+
+
     @Data @NoArgsConstructor @AllArgsConstructor @Builder
-    public static class PriceCalculationDTO {
-        private Integer parcelWeightGrams;
-        private String deliveryType;
-        private String packingPreference;
-    }
+public static class PriceCalculationDTO {
+    private Integer parcelWeightGrams;
+    private String deliveryType;
+    private String packingPreference;
+    private Double originLat;  // ✅
+    private Double originLng;  // ✅
+    private Double destLat;    // ✅
+    private Double destLng;    // ✅
+}
 
 
     @Data @NoArgsConstructor @AllArgsConstructor @Builder
